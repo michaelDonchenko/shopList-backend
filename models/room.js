@@ -7,6 +7,10 @@ const roomSchema = new mongoose.Schema({
     {
       name: String,
       price: Number,
+      checked: {
+        type: Boolean,
+        default: false,
+      },
       date: {
         type: Date,
         default: Date.now(),
@@ -17,6 +21,10 @@ const roomSchema = new mongoose.Schema({
     {
       name: String,
       price: Number,
+      date: {
+        type: Date,
+        default: Date.now(),
+      },
     },
   ],
 })

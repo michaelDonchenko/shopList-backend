@@ -127,3 +127,158 @@ exports.addToCurrentList = async (req, res) => {
     res.status(500).send('Server error')
   }
 }
+
+exports.deleteFromCurrentList = async (req, res) => {
+  const productId = req.params.id
+
+  try {
+    const room = await Room.findById(req.room.id).select('-password ')
+    let currentList = room.currentList
+
+    const filtered = await currentList.filter((item) => item._id != productId)
+
+    room.currentList = filtered
+
+    const updated = await room.save()
+    res.status(201).json(updated)
+  } catch (err) {
+    console.error(err.message)
+    res.status(500).send('Server error')
+  }
+}
+
+exports.addToFavorites = async (req, res) => {
+  const { name, price } = req.body
+  const item = { name, price }
+
+  try {
+    const room = await Room.findById(req.room.id).select(
+      '-password -currentList'
+    )
+    room.favorites.push(item)
+
+    const updated = await room.save()
+
+    res.status(201).json(updated)
+  } catch (err) {
+    console.error(err.message)
+    res.status(500).send('Server error')
+  }
+}
+
+exports.deleteFromFavorites = async (req, res) => {
+  const id = req.params.id
+
+  try {
+    const room = await Room.findById(req.room.id).select(
+      '-password -currentList'
+    )
+    let favorites = room.favorites
+
+    const filtered = await favorites.filter((item) => item._id != id)
+
+    room.favorites = filtered
+
+    const updated = await room.save()
+    res.status(201).json(updated)
+  } catch (err) {
+    console.error(err.message)
+    res.status(500).send('Server error')
+  }
+}
+
+exports.updateCurrentList = async (req, res) => {
+  const id = req.params.id
+  let { updatedName, updatedPrice } = req.body
+
+  try {
+    const room = await Room.findById(req.room.id).select('-password ')
+
+    let item = await room.currentList.find((item) => item._id == id)
+
+    if (!item) {
+      return res.status(404).json({ error: 'Could not find the item' })
+    }
+
+    if (updatedName) {
+      item.name = updatedName
+    }
+
+    if (updatedPrice) {
+      item.price = updatedPrice
+    }
+
+    const updated = await room.save()
+    res.status(201).json(updated)
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Server error')
+  }
+}
+
+exports.updateChecked = async (req, res) => {
+  const id = req.params.id
+  let { checked } = req.body
+  try {
+    const room = await Room.findById(req.room.id).select('-password ')
+
+    let item = await room.currentList.find((item) => item._id == id)
+
+    if (!item) {
+      return res.status(404).json({ error: 'Could not find the item' })
+    }
+
+    item.checked = checked
+
+    const updated = await room.save()
+    res.status(201).json(updated)
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Server error')
+  }
+}
+
+exports.updateFavorite = async (req, res) => {
+  const id = req.params.id
+  let { updatedName, updatedPrice } = req.body
+
+  try {
+    const room = await Room.findById(req.room.id).select(
+      '-password -currentList'
+    )
+
+    let item = await room.favorites.find((item) => item._id == id)
+
+    if (updatedName) {
+      item.name = updatedName
+    }
+
+    if (updatedPrice) {
+      item.price = updatedPrice
+    }
+
+    const updated = await room.save()
+    res.status(201).json(updated)
+  } catch (err) {
+    console.error(err.message)
+    res.status(500).send('Server error')
+  }
+}
+
+exports.addFromFavorites = async (req, res) => {
+  const { item } = req.body
+  let { name, price } = item
+  let itemFromFavorites = { name, price }
+
+  try {
+    const room = await Room.findById(req.room.id).select('-password')
+    room.currentList.push(itemFromFavorites)
+
+    const updated = await room.save()
+
+    res.status(201).json(updated)
+  } catch (err) {
+    console.error(err.message)
+    res.status(500).send('Server error')
+  }
+}

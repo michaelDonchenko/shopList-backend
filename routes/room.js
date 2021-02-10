@@ -11,12 +11,14 @@ const {
   updateFavorite,
   updateChecked,
   addFromFavorites,
+  updateDetails,
 } = require('../controllers/room')
 const { isAuth } = require('../middleware/isAuth')
 const router = express.Router()
 
 router.post('/register', createRoom)
 router.post('/login', login)
+router.put('/roomDetails', isAuth, updateDetails)
 router.get('/', isAuth, getRoom)
 router.post('/currentList', isAuth, addToCurrentList)
 router.post('/currentList/favorite', isAuth, addFromFavorites)

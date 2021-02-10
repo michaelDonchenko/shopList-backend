@@ -40,7 +40,7 @@ exports.createRoom = async (req, res) => {
       payload,
       process.env.JWT_SECRET /**secret variable */,
       {
-        expiresIn: 9999,
+        expiresIn: 99999,
       },
       //check for error or send the token
       (err, token) => {
@@ -84,7 +84,7 @@ exports.login = async (req, res) => {
       payload,
       process.env.JWT_SECRET /**secret variable */,
       {
-        expiresIn: 9999,
+        expiresIn: 99999,
       },
       //check for error or send the token
       (err, token) => {
@@ -96,6 +96,54 @@ exports.login = async (req, res) => {
     )
   } catch (err) {
     console.error(err.message)
+    res.status(500).send('Server error')
+  }
+}
+
+exports.updateDetails = async (req, res) => {
+  let { name, password, passwordConfirm } = req.body
+
+  try {
+    const room = await Room.findById(req.room.id).select(
+      '-password -favorites -currentList'
+    )
+    if (!room) {
+      return res.status(400).json({ error: 'שגיאה, לא ניתן לשנות את הפרטים' })
+    }
+
+    if (!name && !password) {
+      return res.status(400).json({ error: 'לא הוזנו פרטים לשינוי' })
+    }
+
+    if (name) {
+      const roomExist = await Room.findOne({ name })
+      if (roomExist) {
+        return res
+          .status(400)
+          .json({ error: 'שם החדר כבר קיים אנה בחר שם אחר' })
+      }
+      room.name = name
+    }
+
+    if (password) {
+      if (password.length < 6)
+        return res
+          .status(400)
+          .json({ error: 'הסיסמה חייבת להיות לפחות 6 תווים' })
+
+      if (password !== passwordConfirm)
+        return res.status(400).json({ error: 'הסיסמאות אינן שוות' })
+
+      //generate salt for password encryption
+      const salt = await bcrypt.genSalt(10)
+      //encrypt the password before saving to the DB
+      room.password = await bcrypt.hash(password, salt)
+      //save the room
+    }
+    await room.save()
+    res.status(201).json('הפרטים נשמרו בהצלחה')
+  } catch (error) {
+    console.error(error.message)
     res.status(500).send('Server error')
   }
 }
@@ -118,6 +166,12 @@ exports.addToCurrentList = async (req, res) => {
   try {
     const room = await Room.findById(req.room.id).select('-password')
     room.currentList.push(item)
+
+    if (room.currentList.length > 30) {
+      return res
+        .status(400)
+        .json({ error: 'הרשימה לא יכולה להכיל יותר מ30 פריטים' })
+    }
 
     const updated = await room.save()
 
@@ -156,6 +210,12 @@ exports.addToFavorites = async (req, res) => {
       '-password -currentList'
     )
     room.favorites.push(item)
+
+    if (room.favorites.length > 10) {
+      return res
+        .status(400)
+        .json({ error: 'רשימת המועדפים לא יכולה להכיל יותר מ10 פריטים' })
+    }
 
     const updated = await room.save()
 
@@ -273,6 +333,12 @@ exports.addFromFavorites = async (req, res) => {
   try {
     const room = await Room.findById(req.room.id).select('-password')
     room.currentList.push(itemFromFavorites)
+
+    if (room.currentList.length > 30) {
+      return res
+        .status(400)
+        .json({ error: 'הרשימה לא יכולה להכיל יותר מ30 פריטים' })
+    }
 
     const updated = await room.save()
 

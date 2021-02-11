@@ -348,3 +348,61 @@ exports.addFromFavorites = async (req, res) => {
     res.status(500).send('Server error')
   }
 }
+
+exports.checkAll = async (req, res) => {
+  let room = await Room.findById(req.room.id).select('-password')
+
+  try {
+    await room.currentList.map((item) => (item.checked = true))
+    await room.save()
+    res.status(201).json(room)
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Server error')
+  }
+}
+
+exports.uncheckAll = async (req, res) => {
+  let room = await Room.findById(req.room.id).select('-password')
+
+  try {
+    await room.currentList.map((item) => (item.checked = false))
+    await room.save()
+    res.status(201).json(room)
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Server error')
+  }
+}
+
+exports.deleteChecked = async (req, res) => {
+  let room = await Room.findById(req.room.id).select('-password')
+
+  try {
+    let filtered = await room.currentList.filter(
+      (item) => item.checked === false
+    )
+
+    room.currentList = filtered
+
+    await room.save()
+    res.status(201).json(room)
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Server error')
+  }
+}
+
+exports.deleteAll = async (req, res) => {
+  let room = await Room.findById(req.room.id).select('-password')
+
+  try {
+    room.currentList = []
+
+    await room.save()
+    res.status(201).json(room)
+  } catch (error) {
+    console.error(error.message)
+    res.status(500).send('Server error')
+  }
+}

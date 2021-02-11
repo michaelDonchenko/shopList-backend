@@ -16,6 +16,8 @@ exports.isAuth = async (req, res, next) => {
     req.room = decoded.room
     next()
   } catch (err) {
-    res.status(401).json({ error: 'Token is not valid' })
+    res
+      .status(401)
+      .json({ error: 'Token is not valid, try to relog to get a new token.' })
   }
 }

@@ -12,6 +12,10 @@ const {
   updateChecked,
   addFromFavorites,
   updateDetails,
+  checkAll,
+  uncheckAll,
+  deleteChecked,
+  deleteAll,
 } = require('../controllers/room')
 const { isAuth } = require('../middleware/isAuth')
 const router = express.Router()
@@ -25,6 +29,10 @@ router.post('/currentList/favorite', isAuth, addFromFavorites)
 router.delete('/currentList/:id', isAuth, deleteFromCurrentList)
 router.put('/currentList/:id', isAuth, updateCurrentList)
 router.put('/currentList/check/:id', isAuth, updateChecked)
+router.post('/checkAll', isAuth, checkAll)
+router.post('/uncheckAll', isAuth, uncheckAll)
+router.post('/deleteChecked', isAuth, deleteChecked)
+router.post('/deleteAll', isAuth, deleteAll)
 router.post('/favorites', isAuth, addToFavorites)
 router.delete('/favorites/:id', isAuth, deleteFromFavorites)
 router.put('/favorites/:id', isAuth, updateFavorite)
